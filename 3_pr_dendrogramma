@@ -1,0 +1,188 @@
+import itertools
+import random
+from itertools import groupby
+
+import numpy as np
+from matplotlib import pyplot as plt
+
+"""y = []
+x = [random.randint(0, 100) for i in range(0, 50)]
+for i in range(len(x)):
+	if x[i] >= 50:
+		y.append(random.randint(70, 100))
+	else:
+		y.append(random.randint(0, 70))
+"""
+
+x = np.array([[0.4, 0.53],
+              [0.22, 0.38],
+              [0.35, 0.32],
+              [0.26, 0.19],
+              [0.08, 0.41],
+              [0.45, 0.3]])
+xx = {0: [0.4, 0.53],
+      1: [0.22, 0.38],
+      2: [0.35, 0.32],
+      3: [0.26, 0.19],
+      4: [0.08, 0.41],
+      5: [0.45, 0.3]}
+
+
+def dist(x_i1, x_i2, y_i1, y_i2):
+    return ((x_i1 - x_i2) ** 2 + (y_i1 - y_i2) ** 2) ** (0.5)
+
+
+def new_arr(mm, m, xx):
+    mnn = []
+    for i in range(mm[0][1]):
+        mn = 1
+        for j in range(len(m[i][0])):
+            if m[i][0][j] != 0 and m[i][0][j] < mn:
+                mn = m[i][0][j]
+                k = j
+        mnn.append([mn, k])
+    print(f'mnn = {mnn}')
+    new_m, cl = check(m, mm[0][1], mm[0][2])
+    return new_m, cl
+
+
+"""	for j in range(len(m)):
+		if j != mm[0][1] and j != mm[0][2]:
+			new_m.append(m[j])
+		if j<=[0][1]
+	print(f'new_m = {new_m}')"""
+
+"""	for i in m:
+		for j in range(len(i[0])):
+			print(0)"""
+
+
+def min_elem(m, xx):
+    min_list = []
+    for i in m:
+        minn = 1
+        for j in range(len(i)):
+            if j == 0:
+                for k in range(len(i[j])):
+                    if i[j][k] < minn and i[j][k] != 0:
+                        minn = i[j][k]
+                        ck = k
+        min_list.append([minn, i[1], ck])
+    print(f'\nmin_list = {min_list}')
+    m = min_list[0][0]
+    mm = []
+    for i in min_list:
+        for j in range(len(i)):
+            if j == 0 and i[j] < m:
+                m = i[j]
+                k = i[1]
+                kk = i[2]
+    mm.append([m, k, kk])
+    print(f'mm = {mm}')
+    return mm
+
+
+def check(m, n1, n2):
+    cl = []
+    for i in range(len(m[n1][0])):
+        if m[n2][0][i] < m[n1][0][i]:
+            m[n1][0][i] = m[n2][0][i]
+    for h in range(len(m)):
+        del m[h][0][n2]
+    cl.append((n1, n2))
+    del m[n2]
+    return m, cl
+
+
+def count(l):
+    return sum(1 + count(i) for i in l if isinstance(i, list))
+
+
+def flatten(l):
+    li = []
+    while l:  # iterate until provided list is empty.
+        e = l.pop()
+        if type(e) == list:  # check type of the poped item.
+            l.extend(e)  # if popped item is list then extend the item to given list.
+        else:
+            li.append(e)  # if popped item is not list then add it to li
+    li.sort()
+    return li
+
+
+def draw(x, way):
+    k = ['g', 'k', 'm', 'b', 'c', 'y']
+    for i in range(len(x)):
+        if i in way:
+            plt.plot(x[i][0], x[i][1], 'ro', color='r')
+        else:
+            plt.plot(x[i][0], x[i][1], 'ro', color=k[i])
+            #plt.plot(x[i][0], x[i][1], 'ro', color=(0.4 + (i * 3 / 100), abs(0.4 - (i * 3 / 100)), abs(0.5 + (i * 5 / 100))))
+    plt.show()
+
+
+def dendrogramma(x, xx, num):
+    m = []
+    if num >= 5:
+        draw(x, [i for i in range(num + 1)])
+    for i in x:
+        t = []
+        tt = []
+        for j in range(len(x)):
+            r = dist(i[0], x[j][0], i[1], x[j][1])
+            t.append(r)
+        tt = [el for el, _ in groupby(t)]
+        for o in xx:
+            l = all([xx[o][e] == i[e] for e in range(len(xx[o]))])
+            if l == True:
+                p = o
+        m.append([tt, p])
+    classs = []
+    mm = min_elem(m, xx)
+    new_m, cl = new_arr(mm, m, xx)
+    num_classes = [[mm[0][1], mm[0][2]]]
+    if num > 2:
+        for i in range(num):
+            mm = min_elem(new_m, xx)
+            num_classes.append([mm[0][1], mm[0][2]])
+            new_m, cl = new_arr(mm, new_m, xx)
+    elif num == 2:
+        for i in range(num-1):
+            mm = min_elem(new_m, xx)
+            num_classes.append([mm[0][1], mm[0][2]])
+            new_m, cl = new_arr(mm, new_m, xx)
+    print(f'num_classes = {num_classes}')
+    for i in range(len(num_classes)):
+        for j in range(len(num_classes[i])):
+            if i != len(num_classes) - 1:
+                if num_classes[i][j] in num_classes[i + 1]:
+                    ind = num_classes[i + 1].index(num_classes[i][j])
+                    num_classes[i + 1][ind] = num_classes[i]
+    mx = 0
+    ind = 0
+    print(f'num_classes = {num_classes}')
+    print(len(num_classes))
+    for i in num_classes:
+        if mx < count(i):
+            mx = count(i)
+            ind = num_classes.index(i)
+    # print(mx)
+    for i in range(len(num_classes)):
+        if i != ind:
+            if num_classes[i] not in num_classes[ind] and num_classes[i] not in num_classes[ind][0]:
+                classs.append(num_classes[i])
+    # classs.append(num_classes[ind])
+    # print(classs)
+    for i in range(len(classs) - 1):
+        if classs[i] in classs[i + 1]:
+            del classs[i]
+    classs.append(num_classes[ind])
+    print(classs)
+    way = list(set(flatten(classs)))
+    print(way)
+    if num == 0:
+        draw(x, [])
+    else:
+        draw(x, way)
+
+dendrogramma(x, xx, number_of_classes)
