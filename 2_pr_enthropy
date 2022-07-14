@@ -1,0 +1,300 @@
+
+import numpy as np
+from collections import Counter
+
+import math
+
+a = np.array([
+	[2, 2, 2, 2],
+	[1, 2, 2, 1],
+	[1, 0, 2, 1],
+	[1, 0, 2, 2],
+	[1, 0, 2, 0],
+	[1, 2, 0, 0],
+	[2, 0, 2, 2],
+	[2, 0, 0, 0],
+	[0, 0, 2, 0],
+	[0, 2, 0, 0],
+	[0, 2, 2, 2],
+	[0, 2, 2, 1],
+	[0, 2, 2, 0],
+	[2, 2, 2, 1],
+])
+x_i = np.array([i + 1 for i in range(0, len(a[0] + 1))])
+
+y = np.array([2, 2, 1, 2, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2])
+
+def priz(a):
+	x0, x1, x2, x3 =[], [], [], []
+	for i in a:
+		for j in range(len(i)):
+			if j ==0:
+				x0.append(i[j])
+			elif j == 1:
+				x1.append(i[j])
+			elif j == 2:
+				x2.append(i[j])
+			elif j == 3:
+				x3.append(i[j])
+	l = {0:len(Counter(x0)), 1:len(Counter(x1)), 2:len(Counter(x2)), 3:len(Counter(x3))}
+	l1 = [len(Counter(x0)), len(Counter(x1)), len(Counter(x2)), len(Counter(x3))]
+	return l1
+
+
+l1 = priz(a)
+print(l1)
+
+
+def for_cl(x, y):
+	x_1, x_0, x_2 = [], [], []
+	try:
+		for i in range(len(x)):
+			if y[i] == 1:
+				x_2.append(list(x[i]))
+			elif y[i] == 0:
+				x_0.append(list(x[i]))
+			elif y[i] == 2:
+				x_2.append(list(x[i]))
+		# print(f"x_2 = {x_2}")
+		return x_0, x_1, x_2
+	except:
+		print('___')
+
+
+def indx(x, xi, y):
+	x0, x1, x2 = for_cl(x, y)
+	ix0 = []
+	ix2 = []
+	for i in range(len(x0)):
+		for j in range(len(x0[i])):
+			if j == xi:
+				ix0.append(x0[i][j])
+	for i in range(len(x2)):
+		for j in range(len(x2[i])):
+			if j == xi:
+				ix2.append(x2[i][j])
+	return ix0, ix2
+
+
+def kk(x):
+	for i in range(len(x)):
+		if x[i] == 2:
+			x[i] = 1
+	return x
+
+
+def pi(x, a, l):
+	return (Counter(x)[a] / l)
+
+
+answ1 = []
+answ0 = []
+
+w1 = []
+w0 = []
+w2 = []
+
+
+def enthropy(ix0, ix2, a, l):
+	# print(f'l = {l}')
+	if pi(ix0, a, l) == 0 or pi(ix2, a, l) == 0:
+		return 0
+	else:
+		return -(pi(ix0, a, l) * np.log2(pi(ix0, a, l)) + pi(ix2, a, l) * np.log2(pi(ix2, a, l)))
+
+
+def enthropy_all(ix0, ix2, l, ent0, ent2):
+	if ent0 == 0 or ent2 ==0:
+		return 0
+	else:
+		return (len(ix0) / l) * (np.log2(ent0) + len(ix2) / l) * (np.log2(ent2))
+
+
+def check_group(x_i, a):
+	global answ1, ans0
+	if a[0] == 1:
+		k = x_i
+		answ1.append(k)
+		return answ1
+	elif a[0] == 0:
+		k = x_i
+		answ0.append(k)
+		return answ0
+
+
+def way_idex(lst1):
+	lst1 = lst1.tolist()
+	lst = [1, 2, 3, 4, 5]
+	l = []
+	for i in lst:
+		if i not in lst1:
+			l.insert(0, i)
+	return l
+
+
+def check_stopR(ans_r, x_i, v, num):
+	global w0, w1, w2
+	# print(list(Counter(ans_l).keys()))
+	if  (len(Counter(ans_r)) == 1):
+		print(f'done: класс {Counter(ans_r)} {v} R')
+		if list(Counter(ans_r))[0] == 2:
+			w2.append([x_i, num])
+		elif list(Counter(ans_r))[0] == 1:
+			w1.append([x_i, num])
+		elif list(Counter(ans_r))[0] == 0:
+			w0.append([x_i, num])
+		return True, Counter(ans_r)
+
+	else:
+		print(f'класс {Counter(ans_r)} сейчас делили по x{x_i} {v} R')
+		return False, x_i
+
+
+def check_stopL(ans_l, x_i, v, num):
+	global w0, w1, w2
+	if  (len(Counter(ans_l)) == 1):
+		if list(Counter(ans_l))[0] == 2:
+			w2.append([x_i, num])
+		elif list(Counter(ans_l))[0] == 1:
+			w1.append([x_i, num])
+		elif list(Counter(ans_l))[0] == 0:
+			w0.append([x_i, num])
+		print(f'done: класс {Counter(ans_l)} {v} L')
+		return True, Counter(ans_l)
+
+	else:
+		print(f'класс {Counter(ans_l)} сейчас делили по x{x_i} {v} L')
+		return False, x_i
+
+def check_stopM(ans_m, x_i, v, num):
+	global w0, w1, w2
+	if  (len(Counter(ans_m)) == 1):
+		print(f'done: класс {Counter(ans_m)} {v} M')
+		if list(Counter(ans_m))[0] == 2:
+			w2.append([x_i, num])
+		elif list(Counter(ans_m))[0] == 1:
+			w1.append([x_i, num])
+		elif list(Counter(ans_m))[0] == 0:
+			w0.append([x_i, num])
+		return True, Counter(ans_m)
+
+	else:
+		print(f'класс {Counter(ans_m)} сейчас делили по x{x_i} {v} m')
+		return False, x_i
+
+def del_2(x, ite, y, x_i, num, v, num_branch):
+	l_m, r_m = [], []
+	ans_l, ans_r = [], []
+	for i, j in enumerate(x):
+		if (j[ite] == 2):
+			#print(f'j[ite]= {j[ite]}\n ite = {ite}\n y[i] = {y[i]} 2' )
+			r_m.append(j)
+			ans_r.append(y[i])
+		else:
+			#print(f'j[ite]= {j[ite]}\nite = {ite}\ny[i] = {y[i]} {i}i')
+			l_m.append(j)
+			ans_l.append(y[i])
+	#print(f'l_m = {l_m}')
+	x = np.delete(x, ite, 1)
+	r_m = np.delete(r_m, ite, 1)
+	l_m = np.delete(l_m, ite, 1)
+	x_i = np.delete(x_i, ite, 0)
+	chec_l, k1= check_stopL(ans_l, x_i, v, num)
+	chec_r, k2 = check_stopR(ans_r, x_i, v, num)
+	#num_branch.pop(ite)
+	if chec_l == False:
+		print(f'num_branch = {num_branch}')
+		prog(l_m, x_i, ans_l, 'L', num + 1, num_branch)
+	else:
+		l = [k1, num]
+		#w0.append(l)
+
+	if chec_r == False:
+		print(f'num_branch = {num_branch}')
+		prog(r_m, x_i, ans_r, 'R', num + 1, num_branch)
+	else:
+		r = [k2, num]
+		#w2.append(r)
+
+def del_3(x, ite, y, x_i, num, v, num_brunch):
+	l_m, r_m, m_m = [], [], []
+	ans_l, ans_r, ans_m = [], [], []
+	for i, j in enumerate(x):
+		if (j[ite] == 2):
+			r_m.append(j)
+			ans_r.append(y[i])
+		elif j[ite] == 1:
+			m_m.append(j)
+			ans_m.append(y[i])
+		else:
+			l_m.append(j)
+			ans_l.append(y[i])
+	#print(f'm_m = {m_m}')
+	x = np.delete(x, ite, 1)
+	r_m = np.delete(r_m, ite, 1)
+	l_m = np.delete(l_m, ite, 1)
+	m_m = np.delete(m_m, ite, 1)
+	x_i = np.delete(x_i, ite, 0)
+	chec_l, k1= check_stopL(ans_l, x_i, v, num)
+	chec_r, k2 = check_stopR(ans_r, x_i, v, num)
+	chec_m, k3 = check_stopM(ans_m, x_i, v, num)
+	if chec_l == False:
+		print(f'num_branch = {num_branch}')
+		prog(l_m, x_i, ans_l, 'L', num + 1, num_branch)
+	else:
+		l = [k1, num]
+		#w2.append(l)
+
+	if chec_r == False:
+		print(f'num_branch = {num_branch}')
+		prog(r_m, x_i, ans_r, 'R', num + 1, num_branch)
+	else:
+		r = [k2, num]
+		#w0.append(r)
+
+	if chec_m == False:
+		print(f'num_branch = {num_branch}')
+		prog(m_m, x_i, ans_m, 'M', num + 1, num_branch)
+	else:
+		m = [k3, num]
+		#w1.append(m)
+
+
+def prog(x, x_i, y, v, num, num_branch):
+	ind_x = []
+	if len(num_branch) == 0:
+		print('EERROORR')
+		#num_branch = [2]
+		return 0
+	print('____________________')
+	print(f'№{num} сторонa {v}')
+	for i in range(len(x_i)):
+		ix0, ix2 = indx(x, i, y)
+		ent0 = enthropy(ix0, ix2, 0, len(x))
+		ent2 = enthropy(ix0, ix2, 0, len(x))
+		ent = enthropy_all(ix0, ix2, len(x), ent0, ent2)
+		ind_x.append(ent)
+	ite = np.argmin(ind_x)
+	print(f'num_branch == {num_branch}, num_branch[ite] = {num_branch[ite]}')
+	n = num_branch.pop(ite)
+	if n == 3:
+		print('3 ветки')
+		del_3(x, ite, y, x_i, num, v, num_branch)
+	elif n == 2:
+		print('2 ветки')
+		del_2(x, ite, y, x_i, num, v, num_branch)
+	#print(f'min = {np.argmin(ind_x)}')
+
+
+num_branch = priz(a)
+prog(a, x_i, y, 'start', 1, num_branch)
+
+print("      ")
+print("*****************")
+print("______")
+print("______")
+
+new_a = [2, 0, 1, 1]
+
+
+
