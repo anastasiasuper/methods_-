@@ -1,0 +1,88 @@
+import matplotlib.pyplot as plt
+import random
+
+from matplotlib import animation
+
+x_1=[1, 9.4, 2.5, 8, 0.5, 7.9, 7, 2.8, 1.2, 7.8]
+x_2=[1, 6.4, 2.1, 7.7, 2.2, 8.4, 7, 0.8, 3, 6.1]
+
+y = [1, -1, 1, -1, 1, -1, -1, 1, 1, -1]
+
+w = [random.random(), random.random(), random.random()]
+
+def sign(a):
+    return 1 if a>0 else -1
+
+
+
+def new_w(w, y_i, f, v):
+    c = 0.2
+    W = []
+    for i in range(len(w)):
+        W.append(w[i] + (c *(y_i - f)*v[i]))
+    return W
+"""    if sign(v[0]*W[0] + v[1]*W[1] + v[2]*W[2]) != y_i:
+        new_w(W, y_i, f, v)
+    else:
+        return W
+"""
+
+def check_ep(x1, x2, y, w):
+    for i in range(len(x1)):
+        v = [x1[i], x2[i], 1]
+        f = sign(v[0]*w[0] + v[1]*w[1] + w[2]*v[2])
+        if f != y[i]:
+            return False
+    return True
+
+
+def f_net(w, x1, x2, y):
+    for i in range(len(x1)):
+        v = [x1[i], x2[i], 1]
+        f = sign(v[0]*w[0] + v[1]*w[1] + w[2]*v[2])
+        if f != y[i]:
+            w = new_w(w, y[i], f, v)
+    k = check_ep(x1, x2, y, w)
+    return w,k
+
+
+while(True):
+    w, k = f_net(w, x_1, x_2, y)
+    if k == True:
+        break
+
+def line_x1(w, x1):
+    seq = []
+    for i in x1:
+        seq.append((-w[0] * i - w[2]) /(w[1]))
+    return seq
+
+
+def pryama(w, x_1):
+    plt.plot(x_1, line_x1(w, x_1), color='blue')
+
+"""new_x1 = int(input())
+new_x2 = int(input())"""
+
+
+def resh(x1, x2, w):
+    for i in range(len(x1)):
+        if sign(x1[i]*w[0] + x2[i]*w[1] + w[2]) > 0:
+            color = 'red'
+        else:
+            color = 'green'
+        if i == (len(x1) - 1):
+            color = 'yellow'
+        plt.plot(x1[i], x2[i], 'ro', color=color)
+    plt.plot(x_1, line_x1(w, x_1), color='blue')
+
+
+x_1.append(int(input()))
+x_2.append(int(input()))
+resh(x_1, x_2, w)
+#fig = plt.figure()
+
+#ani = animation.FuncAnimation(fig, pryama(w, x_1), interval=1)
+#plt.scatter(x_1, x_2, s = 2, c = 'red')
+plt.grid(True)
+plt.show()
