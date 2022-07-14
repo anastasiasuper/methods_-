@@ -1,0 +1,207 @@
+from collections import Counter
+from itertools import groupby
+import random
+import numpy as np
+from matplotlib import pyplot as plt
+# a + 2b + 3c + 4d = 30
+x = [[random.randint(1, 100) for i in range(0, 4)],
+              [random.randint(1, 100) for i in range(0, 4)],
+              [random.randint(1, 100) for i in range(0, 4)],
+              [random.randint(1, 100) for i in range(0, 4)],
+              [random.randint(1, 100) for i in range(0, 4)]]
+"""x = [[1, 28, 15, 3],
+     [14, 9, 2, 4],
+     [13, 5, 7, 3],
+     [23, 8, 16, 19],
+     [9, 13, 5, 2]]"""
+
+answerr = []
+
+def flatten(l):
+    li = []
+    while l:
+        e = l.pop()
+        if type(e) == list:
+            l.extend(e)
+        else:
+            li.append(e)
+    li.sort()
+    return li
+
+def check_ans(x, sur):
+    answer = []
+    if 0 in Counter(sur):
+        print(x)
+        print(sur)
+        for i in range(len(sur)):
+            if sur[i] == 30:
+                answer.append(x[i])
+    return answer
+
+
+def make_mins(surv):
+    print(f'sorted(surv)[0:3] = {sorted(surv)[0:3]}')
+    m = sorted(surv)[0:3]
+    if len(Counter(m)) != 3:
+        for i in range(1, len(m)):
+            if m[i] == m[i-1]:
+                m[i] = random.choice(sorted(surv)[3:])
+    for i in range(len(m)):
+        if m[i] < 0:
+            m[i] = random.choice(sorted(surv)[3:])
+    print(f'm = {m}')
+    return m
+
+def mutation(x, sur):
+    print('\nMutation------->')
+    max_el = x[sur.index(max(sur))]
+    min_el = x[sur.index(min(sur))]
+    new_m = 0
+    ans = 0
+    koef = [i for i in range(1, 5)]
+    print(f"max(sur) = {max(sur)}")
+    while True:
+        sum = 0
+        new_elem = [random.randint(1, 21) for i in range(4)]
+        for i in range(len(new_elem)):
+            sum += new_elem[i] * koef[i]
+        new_m = sum - 30
+        if (new_m < max(sur) and new_m>=0):
+            break
+    print(f"new_m = {new_m}")
+    x[sur.index(max(sur))] = new_elem
+    print(f"min(sur) = {min(sur)}")
+    if min(sur) < 0:
+        while True:
+            sum = 0
+            new_elem = [random.randint(1, 21) for i in range(4)]
+            for i in range(len(new_elem)):
+                sum += new_elem[i] * koef[i]
+            new_m = sum - 30
+            if (new_m < (ans+5) and new_m>=0):
+                break
+        x[sur.index(min(sur))] = new_elem
+    return x
+
+def mega_x(x, new_x):
+    print(f'x = {x}')
+    print(f'new_x = {new_x}')
+    s = flatten([make_mins(x), make_mins(new_x)])
+    s = sorted(s)[0:5]
+    print(f's = {s}')
+    return s
+
+def crossing(min_el, sur, x):
+    print('\nCrossing---------->')
+    mn = make_mins(sur)
+    #print(f'mn={mn}')
+    new_x = []
+    k = 0
+    for i in range(len(x)):
+        aa = random.randint(0, len(x) - 1)
+        bb = sur.index(random.choice(mn))
+        if aa == bb:
+            aa = random.randint(0, len(x) - 1)
+        ind = [aa, bb]
+            #print(f'ind = {ind}')
+        a = x[ind[0]]
+        b = x[ind[1]]
+        if i >= len(x) - 2:
+            d = [a[: k + 1], b[k + 1:]]
+            d = flatten(d)
+            new_x.append(d)
+            k += 1
+        else:
+            d = [a[: i + 1], b[i + 1:]]
+            d = flatten(d)
+            new_x.append(d)
+        #print(f'new_x = {new_x}')
+    min_el, sur_p = survival(new_x)
+    new_x = mutation(new_x, sur_p)
+    s = mega_x(sur_p, sur)
+    new_list = []
+    for i in s:
+            #print(i)
+        if i in sur_p:
+            l = new_x[sur_p.index(i)]
+                #l = flatten(l)
+            new_list.append(l)
+            if i == 0:
+                answerr.append(l)
+        elif i in sur:
+            l = x[sur.index(i)]
+                #l = flatten(l)
+            new_list.append(l)
+            if i == 0:
+                answerr.append(l)
+        else:
+            print('error')
+    print(f'new_list = {new_list}')
+    return new_list
+
+def survival(x):
+    ans = 30
+    koef = [i for i in range(1, 5)]
+    sur = []
+    for i in range(len(x)):
+        sum = 0
+        for j in range(len(x[i])):
+            sum += x[i][j] * koef[j]
+        sur.append(sum - ans)
+    #print(sur)
+    min_el = min(sur)
+    #print(f"min_el = {min_el}")
+    if check_ans(x, sur) != []:
+        answerr.append(check_ans(x, sur))
+    return min_el, sur
+    # crossing(min_el, x)
+"""    for i in range(int(len(sur))):
+        if sur[i] <= max(sur)/2:"""
+min_el, sur = survival(x)
+k = crossing(min_el, sur, x)
+ap = []
+l = list(map(list, {tuple(x) for x in answerr}))
+n = 1
+while True:
+    min_el, sur = survival(k)
+    k = crossing(min_el, sur, k)
+    n+=1
+    if len(list(map(list, {tuple(x) for x in answerr}))) >= 1:
+        k = [[random.randint(1, 100) for i in range(0, 4)],
+             [random.randint(1, 100) for i in range(0, 4)],
+             [random.randint(1, 100) for i in range(0, 4)],
+             [random.randint(1, 100) for i in range(0, 4)],
+             [random.randint(1, 100) for i in range(0, 4)]]
+        ap.append(list(map(list, {tuple(x) for x in answerr})))
+        answerr = []
+        #k = [[random.randint(1, 100) for i in range(0, 4)],
+              #[random.randint(1, 100) for i in range(0, 4)],
+              #[random.randint(1, 100) for i in range(0, 4)],
+              #[random.randint(1, 100) for i in range(0, 4)],
+              #[random.randint(1, 100) for i in range(0, 4)]]
+        #k = crossing(min_el, sur, k)
+        #break
+    if len(ap) >= 3:
+        break
+
+print(f'\nэпох: {n}')
+ans = list(map(list, {tuple(x) for x in answerr}))
+print(ap)
+
+def check_answer_total(x):
+    ans = 30
+    koef = [i for i in range(1, 5)]
+    sur = []
+    for i in range(len(x)):
+        sum = 0
+        for j in range(len(x[i])):
+            sum += x[i][j] * koef[j]
+        sur.append(sum - ans)
+    if sur[0] == 0:
+        print('GOOD')
+    else:
+        print('BAD')
+
+
+
+#check_answer_total(ans)
